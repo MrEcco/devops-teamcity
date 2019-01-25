@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: teamcity-pgsql
+spec:
+  selector:
+    matchLabels:
+      app: teamcity-pgsql
+  serviceName: "teamcity-pgsql"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: teamcity-pgsql
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: postgres
+        image: postgres:11
+        ports:
+        - containerPort: 5432
+          name: postgres
+        volumeMounts:
+        - name: db
+          mountPath: /var/lib/postgresql
+  volumeClaimTemplates:
+  - metadata:
+      name: db
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # storageClassName: "do-block-storage"
+      # storageClassName: io1
+      storageClassName: "glusterfs-storage"
+      resources:
+        requests:
+          storage: 5Gi

@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agents-bottstrap
+data:
+  bootstrap.sh: |
+    #!/bin/bash
+    echo "Europe/London" > /etc/timezone
+    ln -fs /usr/share/zoneinfo/Europe/London /etc/localtime
+    apt-get update &&
+    apt-get -y install curl pv bc wget git apt-transport-https bash-completion &&
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - &&
+    echo deb http://apt.kubernetes.io/ kubernetes-xenial main > /etc/apt/sources.list.d/kubernetes.list &&
+    apt-get update &&
+    apt-get -y install --no-install-recommends dnsutils jq net-tools ssh telnet unzip vim nano wget xz-utils python3 python3-pip awscli kubectl.
+  kubernetes-config-1: |
+    apiVersion: v1
+    clusters:
+    - cluster:
+        certificate-authority-data: <<<STRIPPED>>>
+        server: https://<<<STRIPPED>>>
+      name: <<<STRIPPED>>>
+    contexts:
+    - context:
+        cluster: <<<STRIPPED>>>
+        user: <<<STRIPPED>>>
+      name: <<<STRIPPED>>>
+    current-context: <<<STRIPPED>>>
+    kind: Config
+    preferences: {}
+    users:
+    - name: <<<STRIPPED>>>
+      user:
+        client-certificate-data: <<<STRIPPED>>>
+        client-key-data: <<<STRIPPED>>>
+# You can add any other configs to this, like aws-s3 credentials, kubernes config files, docker credentials and many other

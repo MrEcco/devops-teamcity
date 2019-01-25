@@ -1,0 +1,27 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: teamcity
+  annotations:
+    # volume.beta.kubernetes.io/storage-class: "do-block-storage"
+    volume.beta.kubernetes.io/storage-class: "gp2"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: teamcity-logs
+  annotations:
+    # volume.beta.kubernetes.io/storage-class: "do-block-storage"
+    volume.beta.kubernetes.io/storage-class: "gp2"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

@@ -1,0 +1,6 @@
+#Sat Jul 28 06:52:51 GMT 2018
+connectionProperties.user=teamcity
+# Dont forgot to change password
+connectionProperties.password=teamcity
+connectionProperties.autosave=conservative
+connectionUrl=jdbc\:postgresql\://teamcity-pgsql:5432/teamcity

@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: teamcity-agents
+  label:
+    app: teamcity
+    app-part: agent
+spec:
+  selector:
+    matchLabels:
+      app: teamcity-agents
+  serviceName: "teamcity-agents"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: teamcity-agents
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+      - name: teamcity-agents
+        image: jetbrains/teamcity-agent:2018.2.1
+        command:
+        - "/bin/bash"
+        - "-c"
+        - |
+          #!/bin/bash
+          # Run automatic installer
+          cp /root/configs/bootstrap.sh /root/
+          chmod 700 /root/bootstrap.sh
+          /root/bootstrap.sh
+          # Place config files
+          mkdir -p /root/.kube
+          cat /root/configs/kubernetes-config-1 > /root/.kube/config
+          chmod 600 /root/.kube/config
+          # Start teamcity agent
+          exec /bin/bash /run-services.sh
+        env:
+        - name: "SERVER_URL"
+          value: "teamcity-server"
+        - name: "DOCKER_IN_DOCKER"
+          value: "start"
+        securityContext: 
+          privileged: true # Required for docker
+        ports:
+        - containerPort: 9090
+          name: teamcity-agent
+        volumeMounts:
+        - name: config
+          mountPath: /data/teamcity_agent/conf
+        - name: docker
+          mountPath: /var/lib/docker
+        - name: agents-conf # We cannot place it just to root and distribute configmap keys
+          mountPath: /root/configs
+          readOnly: true
+      volumes:
+      - name: agents-conf
+        configMap:
+          name: agents-conf
+  volumeClaimTemplates:
+  - metadata:
+      name: config
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # storageClassName: "do-block-storage"
+      storageClassName: "gp2"
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata: # Docker very like your disk! This required for prevent disk starvation.
+      name: docker
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # storageClassName: "do-block-storage"
+      storageClassName: "gp2"
+      resources:
+        requests:
+          storage: 50Gi

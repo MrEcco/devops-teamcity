@@ -1,0 +1,82 @@
+version: '3.0'
+services:
+  teamcity-pgsql:
+    container_name: teamcity-pgsql
+    image: postgres:11
+    environment:
+      POSTGRES_DB: teamcity
+      POSTGRES_PASSWORD: teamcity
+      POSTGRES_USER: teamcity
+    stdin_open: true
+    volumes:
+      - "./volumes/pgsqldb:/var/lib/postgresql/data" # Database
+    stop_grace_period: 20s
+    expose:
+      - "5432"
+  teamcity-server:
+    container_name: teamcity-server
+    image: jetbrains/teamcity-server:2018.2.1
+    # entrypoint:
+    # - "sleep"
+    # - "36000"
+    stdin_open: true
+    ports:
+      - "80:8111"
+    expose:
+      - "8111"
+    links:
+      - teamcity-pgsql:teamcity-pgsql
+    stop_grace_period: 5s
+    volumes:
+      - "./volumes/teamcity-persistence:/data/teamcity_server/datadir"
+      - "./volumes/teamcity-logs:/opt/teamcity/logs"
+      # - "./:/temporary:ro"
+  teamcity-agent-0:
+    container_name: teamcity-agent-0
+    image: jetbrains/teamcity-agent:2018.2.1
+    stdin_open: true
+    environment:
+      SERVER_URL: teamcity-server:8111
+      DOCKER_IN_DOCKER: start
+    privileged: true
+    links:
+      - teamcity-server:teamcity-server
+    expose:
+      - 9090
+    stop_grace_period: 1s
+    volumes:
+      - "./volumes/teamcity-agent-0:/data/teamcity_agent/conf"
+      # - "./volumes/teamcity-agent-0-docker:/var/lib/docker" # ...but we dont need it
+  teamcity-agent-1:
+    container_name: teamcity-agent-1
+    image: jetbrains/teamcity-agent:2018.2.1
+    stdin_open: true
+    environment:
+      SERVER_URL: teamcity-server:8111
+      DOCKER_IN_DOCKER: start
+    privileged: true
+    links:
+      - teamcity-server:teamcity-server
+    expose:
+      - 9090
+    stop_grace_period: 1s
+    volumes:
+      - "./volumes/teamcity-agent-1:/data/teamcity_agent/conf"
+      # - "./volumes/teamcity-agent-1-docker:/var/lib/docker" # ...but we dont need it
+  teamcity-agent-2:
+    container_name: teamcity-agent-2
+    image: jetbrains/teamcity-agent:2018.2.1
+    stdin_open: true
+    environment:
+      SERVER_URL: teamcity-server:8111
+      DOCKER_IN_DOCKER: start
+    privileged: true
+    links:
+      - teamcity-server:teamcity-server
+    expose:
+      - 9090
+    stop_grace_period: 1s
+    volumes:
+      - "./volumes/teamcity-agent-2:/data/teamcity_agent/conf"
+      # - "./volumes/teamcity-agent-2-docker:/var/lib/docker" # ...but we dont need it
+

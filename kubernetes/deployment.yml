@@ -1,0 +1,60 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: teamcity-server
+  label:
+    app: teamcity
+    app-part: server
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: teamcity-server
+  template:
+    metadata:
+      name: teamcity-server
+      labels:
+        app: teamcity-server
+    spec:
+      terminationGracePeriodSeconds: 15
+      containers:
+      - name: teamcity
+        image: jetbrains/teamcity-server:2018.2.1
+        # command:
+        # - 'sleep'
+        # - '36000'
+        ports:
+        - name: teamcity
+          containerPort: 8111
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 2048Mi
+          requests:
+            cpu: 100m
+            memory: 50Mi
+        volumeMounts:
+        - name: "teamcity"
+          mountPath: "/data/teamcity_server/datadir"
+        - name: "teamcity-logs"
+          mountPath: "/opt/teamcity/logs"
+        imagePullPolicy: "Always"
+        # readinessProbe:
+        #   tcpSocket:
+        #     port: 8111
+        #   initialDelaySeconds: 5
+        #   periodSeconds: 5
+        # livenessProbe:
+        #   tcpSocket:
+        #     port: 8111
+        #   initialDelaySeconds: 45
+        #   periodSeconds: 15
+        #   failureThreshold: 3
+      volumes:
+      - name: "teamcity"
+        persistentVolumeClaim:
+          claimName: "teamcity"
+      - name: "teamcity-logs"
+        persistentVolumeClaim:
+          claimName: "teamcity-logs"
